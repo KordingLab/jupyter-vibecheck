@@ -123,8 +123,8 @@ class DatatopsContentReviewContainer(ContentReviewContainer):
         self._prompt = prompt
         self._section_id = section_id
         self._content_review = ContentReview(prompt, self._submit)
-        self._datatops = Datatops(datatops_config["url"])
-        self._datatops_project = self._datatops.get_project(datatops_config["name"])
+        self._datatops = Datatops(datatops_config.pop("url"))
+        self._datatops_project = self._datatops.get_project(**datatops_config)
         super().__init__(prompt, section_id, self._submit)
 
     def _submit(self, button_name: str, feedback: str):
