@@ -4,7 +4,7 @@ import os
 import io
 from setuptools import find_packages, setup
 
-VERSION = "0.0.1"
+VERSION = "0.0.2"
 
 here = os.path.abspath(os.path.dirname(__file__))
 with io.open(os.path.join(here, "README.md"), encoding="utf-8") as f:

@@ -17,7 +17,7 @@ class ContentReview:
     def render(self):
         happy_button = Button(
             tooltip="Happy",
-            icon="smile-o",
+            description="🙂",
             layout=Layout(width="auto", height="auto"),
             style=ButtonStyle(button_color="#aaffaa"),
         )
@@ -25,7 +25,7 @@ class ContentReview:
 
         medium_button = Button(
             tooltip="Medium",
-            icon="meh-o",
+            description="😐",
             layout=Layout(width="auto", height="auto"),
             style=ButtonStyle(button_color="#dddd77"),
         )
@@ -33,7 +33,7 @@ class ContentReview:
 
         sad_button = Button(
             tooltip="Sad",
-            icon="frown-o",
+            description="🙁",
             layout=Layout(width="auto", height="auto"),
             style=ButtonStyle(button_color="#ffaaaa"),
         )
