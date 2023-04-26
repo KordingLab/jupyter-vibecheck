@@ -1,43 +1,61 @@
-from typing import Callable
+from typing import Callable, Optional, Protocol
+from enum import Enum
 import datetime
 from datatops import Datatops
 from ipywidgets import Button, HBox, Label, VBox, Layout, ButtonStyle, Textarea
 from IPython.display import display
 
 
+class DatatopsButton(Protocol):
+    _name: str
+
+    @property
+    def name(self):
+        return self._name
+
+    def widget_factory(self):
+        pass
+
+
+class TrafficLightButton:
+    def __init__(
+        self, text: str, color: str = "#dedede", description: Optional[str] = None
+    ):
+        self._name = text
+        self._description = text if description is None else description
+        self._color = color
+
+    def widget_factory(self):
+        btn = Button(
+            tooltip=self._description,
+            description=self._name,
+            layout=Layout(width="auto", height="auto"),
+            style=ButtonStyle(button_color=self._color, font_size="2em"),
+        )
+        btn.add_class(self._description)
+        btn.layout.padding = "0.5em"
+        return btn
+
+
 class ContentReview:
-    def __init__(self, prompt: str, feedback_callback: Callable[[str, str], bool]):
+    def __init__(
+        self,
+        prompt: str,
+        feedback_callback: Callable[[str, str], bool],
+        show_medium: bool = True,
+    ):
         self._prompt = prompt
         self._button_pressed: str = None
         self._feedback_callback = feedback_callback
+        self._show_medium = show_medium
 
     def _submit(self, button_name: str, feedback: str):
         self._feedback_callback(button_name, feedback)
 
     def render(self):
-        happy_button = Button(
-            tooltip="Happy",
-            description="🙂",
-            layout=Layout(width="auto", height="auto"),
-            style=ButtonStyle(button_color="#aaffaa"),
-        )
-        happy_button.add_class("happy")
-
-        medium_button = Button(
-            tooltip="Medium",
-            description="😐",
-            layout=Layout(width="auto", height="auto"),
-            style=ButtonStyle(button_color="#dddd77"),
-        )
-        medium_button.add_class("medium")
-
-        sad_button = Button(
-            tooltip="Sad",
-            description="🙁",
-            layout=Layout(width="auto", height="auto"),
-            style=ButtonStyle(button_color="#ffaaaa"),
-        )
-        sad_button.add_class("sad")
+        happy_button = TrafficLightButton("🙂", "#aaffaa", "happy").widget_factory()
+        medium_button = TrafficLightButton("😐", "#dddd77", "medium").widget_factory()
+        sad_button = TrafficLightButton("🙁", "#ffaaaa", "sad").widget_factory()
 
         feedback_text = Textarea(
             placeholder="We want your feedback!",
@@ -84,14 +102,18 @@ class ContentReview:
 
         submit_button.on_click(_submit_unhappy_feedback)
 
-        return VBox(
+        buttons = (
             [
-                Label(self._prompt),
-                HBox([happy_button, medium_button, sad_button]),
-                feedback_container,
-                feedback_thanks,
+                happy_button,
+                medium_button,
+                sad_button,
             ]
+            if self._show_medium
+            else [happy_button, sad_button]
         )
+
+        rows = [HBox(buttons), feedback_container, feedback_thanks]
+        return VBox([Label(self._prompt), *rows]) if self._prompt else VBox(rows)
 
 
 class ContentReviewContainer:
