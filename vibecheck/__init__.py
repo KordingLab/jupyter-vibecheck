@@ -1,7 +1,17 @@
 from typing import Callable, Optional, Protocol
 import datetime
 from datatops import Datatops
-from ipywidgets import Button, HBox, Label, VBox, Layout, ButtonStyle, Textarea, HTML
+from ipywidgets import (
+    Button,
+    HBox,
+    Label,
+    VBox,
+    Layout,
+    ButtonStyle,
+    Textarea,
+    HTML,
+    Output,
+)
 from IPython.display import display
 from collections import Counter
 
@@ -178,28 +188,6 @@ class DatatopsContentReviewContainer(ContentReviewContainer):
             import matplotlib.pyplot as plt
         except ModuleNotFoundError:
             print("Matplotlib is not installed, falling back on basic display")
-
-            # return VBox(
-            #     [
-            #         HBox(
-            #             [
-            #                 Label("Happy:<br />Medium:<br />Sad:"),
-            #                 Label(
-            #                     f"{str(button_counter['happy'])}<br />{str(button_counter['medium'])}<br />{str(button_counter['sad'])}"
-            #                 ),
-            #                 # Percentage
-            #                 Label(
-            #                     f"{str(button_counter['happy'] / len(results) * 100)}%<br />{str(button_counter['medium'] / len(results) * 100)}%<br />{str(button_counter['sad'] / len(results) * 100)}%"
-            #                 ),
-            #             ]
-            #         ),
-            #         # Label(
-            #         #     f"Happy:\t{str(button_counter['happy'])}\t({str(button_counter['happy'] / len(results) * 100)}%)<br />"
-            #         #     f"Medium:\t{str(button_counter['medium'])}\t({str(button_counter['medium'] / len(results) * 100)}%)<br />"
-            #         #     f"Sad:\t{str(button_counter['sad'])}\t({str(button_counter['sad'] / len(results) * 100)}%)"
-            #         # ),
-            #     ]
-            # )
             return HTML(
                 f"""
                 <table>
@@ -220,6 +208,16 @@ class DatatopsContentReviewContainer(ContentReviewContainer):
                     </tr>
             """
             )
+
+        fig, ax = plt.subplots()
+        ax.bar(
+            ["happy", "medium", "sad"],
+            [button_counter["happy"], button_counter["medium"], button_counter["sad"]],
+        )
+        ax.set_ylabel("Count")
+        ax.set_title("Content Review Results")
+        plt.show()
+        return Output()
 
     def render(self):
         return display(
