@@ -25,3 +25,5 @@ DatatopsContentReviewContainer(
 ```
 
 ![image](https://user-images.githubusercontent.com/693511/234666584-f09e84af-148e-4cb0-aef4-68104b512dbf.png)
+
+For more information, see the [documentation](./docs/).
