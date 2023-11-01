@@ -1,9 +1,19 @@
 from typing import Callable, Optional, Protocol
-from enum import Enum
 import datetime
 from datatops import Datatops
-from ipywidgets import Button, HBox, Label, VBox, Layout, ButtonStyle, Textarea
+from ipywidgets import (
+    Button,
+    HBox,
+    Label,
+    VBox,
+    Layout,
+    ButtonStyle,
+    Textarea,
+    HTML,
+    Output,
+)
 from IPython.display import display
+from collections import Counter
 
 
 class DatatopsButton(Protocol):
@@ -157,4 +167,62 @@ class DatatopsContentReviewContainer(ContentReviewContainer):
                 "section_id": self._section_id,
                 "timestamp_utc": datetime.datetime.utcnow().isoformat(),
             }
+        )
+
+    def _has_admin_access(self):
+        return self._datatops_project.admin_key is not None
+
+    def _admin_results(self):
+        # {'__datatops_project': 'public_testbed',
+        # '__datatops_timestamp_iso': '1682534910', 'button_name': 'happy',
+        # 'feedback': '', 'section_id': 'Learning Datatops',
+        # 'timestamp_utc': '2023-04-26T18:48:31.836088'}
+        results = [
+            d
+            for d in self._datatops_project.list_data()
+            if d["section_id"] == self._section_id
+        ]
+        button_counter = Counter([d["button_name"] for d in results])
+
+        try:
+            import matplotlib.pyplot as plt
+        except ModuleNotFoundError:
+            print("Matplotlib is not installed, falling back on basic display")
+            return HTML(
+                f"""
+                <table>
+                    <tr>
+                        <th>Happy</th>
+                        <th>Medium</th>
+                        <th>Sad</th>
+                    </tr>
+                    <tr>
+                        <td>{str(button_counter['happy'])}</td>
+                        <td>{str(button_counter['medium'])}</td>
+                        <td>{str(button_counter['sad'])}</td>
+                    </tr>
+                    <tr>
+                        <td>{str(button_counter['happy'] / len(results) * 100)}%</td>
+                        <td>{str(button_counter['medium'] / len(results) * 100)}%</td>
+                        <td>{str(button_counter['sad'] / len(results) * 100)}%</td>
+                    </tr>
+            """
+            )
+
+        fig, ax = plt.subplots()
+        ax.bar(
+            ["happy", "medium", "sad"],
+            [button_counter["happy"], button_counter["medium"], button_counter["sad"]],
+        )
+        ax.set_ylabel("Count")
+        ax.set_title("Content Review Results")
+        plt.show()
+        return Output()
+
+    def render(self):
+        return display(
+            VBox(
+                [self._content_review.render()]
+                + ([self._admin_results()] if self._has_admin_access() else [])
+            )
         )
