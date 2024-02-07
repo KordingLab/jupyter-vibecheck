@@ -183,31 +183,70 @@ class DatatopsContentReviewContainer(ContentReviewContainer):
             if d["section_id"] == self._section_id
         ]
         button_counter = Counter([d["button_name"] for d in results])
+        comments = [
+            d
+            for d in results if d["feedback"] != ""
+        ]
 
         try:
             import matplotlib.pyplot as plt
+            from itables import init_notebook_mode, show
+            import pandas as pd
         except ModuleNotFoundError:
-            print("Matplotlib is not installed, falling back on basic display")
-            return HTML(
-                f"""
-                <table>
-                    <tr>
-                        <th>Happy</th>
-                        <th>Medium</th>
-                        <th>Sad</th>
-                    </tr>
-                    <tr>
-                        <td>{str(button_counter['happy'])}</td>
-                        <td>{str(button_counter['medium'])}</td>
-                        <td>{str(button_counter['sad'])}</td>
-                    </tr>
-                    <tr>
-                        <td>{str(button_counter['happy'] / len(results) * 100)}%</td>
-                        <td>{str(button_counter['medium'] / len(results) * 100)}%</td>
-                        <td>{str(button_counter['sad'] / len(results) * 100)}%</td>
-                    </tr>
-            """
+            print(
+                """Matplotlib, itables or pandas is not installed,
+                falling back on basic display"""
             )
+
+            def dict_list_to_html_table(dict_list):
+                if len(dict_list) == 0:
+                    return "No table data."
+                # Start the table, add table headers based on keys
+                html = '<table border="0">\n'
+                html += '<tr>'  # Open header row
+                headers = dict_list[0].keys()
+                for header in headers:
+                    html += f'<th>{header}</th>'
+                html += '</tr>\n'  # Close header row
+
+                # Add table rows for each dictionary in the list
+                for d in dict_list:
+                    html += '<tr>'  # Start a new row
+                    for key, value in d.items():
+                        html += f'<td>{value}</td>'  # Add a cell
+                    html += '</tr>\n'  # End the row
+
+                html += '</table>'  # Close the table
+                return html
+
+            if len(results) != 0:
+                return HTML(
+                    f"""
+                    <table>
+                        <tr>
+                            <th>Happy</th>
+                            <th>Medium</th>
+                            <th>Sad</th>
+                        </tr>
+                        <tr>
+                            <td>{str(button_counter['happy'])}</td>
+                            <td>{str(button_counter['medium'])}</td>
+                            <td>{str(button_counter['sad'])}</td>
+                        </tr>
+                        <tr>
+                            <td>{str(button_counter['happy'] /
+                                     len(results) * 100)}%</td>
+                            <td>{str(button_counter['medium'] /
+                                     len(results) * 100)}%</td>
+                            <td>{str(button_counter['sad'] /
+                                     len(results) * 100)}%</td>
+                        </tr>
+                    </table>
+                    {dict_list_to_html_table(comments)}
+                    """
+                )
+            else:
+                return HTML("No feedback given.")
 
         fig, ax = plt.subplots()
         ax.bar(
@@ -217,6 +256,20 @@ class DatatopsContentReviewContainer(ContentReviewContainer):
         ax.set_ylabel("Count")
         ax.set_title("Content Review Results")
         plt.show()
+        # Show comments
+        init_notebook_mode(all_interactive=True)
+        df = pd.DataFrame(comments)
+        if len(comments) != 0:
+            show(
+                df[["button_name", "feedback", "timestamp_utc"]],
+                caption="Feedback Texts",
+                classes="display balance cell-border",
+                scrollX=True,
+                style="width:800px",
+                lengthMenu=[2, 5, 10]
+            )
+        else:
+            show(df)
         return Output()
 
     def render(self):
